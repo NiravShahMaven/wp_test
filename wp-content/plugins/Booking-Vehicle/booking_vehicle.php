@@ -598,7 +598,8 @@ function booking_form( $first_name, $last_name, $email, $phone, $vehicle_type, $
     	
 		$categories = get_categories('category');
  
-		$formHtml .= "<select name='vehicle_type'>";
+		$formHtml .= "<select name='vehicle_type' class='vehicle_type' id='vehicle_type'>";
+		$formHtml .= "<option selected=''>Select Type</option>";
 		foreach($categories as $category){
 		    if($category->count > 0){
 		        $formHtml .="<option value='".$category->slug."'>".$category->name."</option>";
@@ -610,24 +611,18 @@ function booking_form( $first_name, $last_name, $email, $phone, $vehicle_type, $
 
     $formHtml .= "<div>";
     $formHtml .= "<label for='vehicle'>Vehicle</label>";
-    $formHtml .= "<select name='vehicle' class='PostId' id='category'>";
-	$formHtml .= "<option selected=''>Select Vehicle</option>";
-			$args = array('post_type'=>'post');
-			$the_query = get_posts( $args );
-			foreach ($the_query as $post) {
-				$formHtml .= "<option value=".$post->post_title.">".$post->post_title."</option>";
-			}
+    $formHtml .= "<select name='vehicle' class='vehicle' id='vehicle'>";
+    $formHtml .= "<option selected=''>Select Vehicle</option>";
 	$formHtml .= "</select>";
 	$formHtml .= "</div>";
      
     $formHtml .= "<div>";
-    $formHtml .= "<label for='vehicle'>Vehicle</label>";
-    $formHtml .= "<input type='text' name='vehicle' value=" . ( isset( $_POST['vehicle']) ? $vehicle : null ) . ">";
-     $formHtml .= "</div>";
-     
-    $formHtml .= "<div>";
     $formHtml .= "<label for='vehicle_price'>Price</label>";
-    $formHtml .= "<input type='text' name='vehicle_price' value=" . ( isset( $_POST['vehicle_price']) ? $vehicle_price : null ) . ">";
+    $formHtml .= "<span id='vehicle_price'></span>";
+    $formHtml .= "</div>";
+
+    $formHtml .= "<div>";
+    $formHtml .= "<input type='hidden' id='vehicle_price_input' name='vehicle_price'>";
     $formHtml .= "</div>";
 
     $formHtml .= "<div>";
@@ -733,3 +728,31 @@ function custom_booking_shortcode() {
     custom_booking_function();
     return ob_get_clean();
 }
+
+?>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript">
+	$(function() {
+		$(".vehicle_type").change(function(){
+			var vehicleType = $('#vehicle_type option:selected').val();
+			$.ajax({
+		        type: 'post',
+		        url : '<?php echo content_url('plugins/Booking-Vehicle/dropdown_query.php'); ?>',
+		        data: {category: vehicleType},
+		        dataType: "html",
+			    success: function(dropdown_data) {
+			        $('#vehicle').html(dropdown_data); 
+			    } 
+		    });
+		});
+    });
+</script>
+<script>
+	$(function() {
+		$(".vehicle").change(function(){
+			var Price = $('#vehicle option:selected').attr('id');
+			$('#vehicle_price_input').val(Price);
+			$('#vehicle_price').text(Price);
+		});
+    });
+</script>
